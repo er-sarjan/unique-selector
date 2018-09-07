@@ -7,9 +7,9 @@ export function getID( el )
 {
   const id = el.getAttribute( 'id' );
 
-  if( id !== null && id !== '')
+  if( id !== null && id !== '' )
   {
-    return `#${id}`;
+    return id.match( /^\d/ ) ? `[id="${id}"]` : `#${id}`;
   }
   return null;
 }
