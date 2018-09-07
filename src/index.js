@@ -152,6 +152,62 @@ function getUniqueSelector( element, selectorTypes, attributesToIgnore )
   return '*';
 }
 
+function getAllUniqueSelector( element, selectorTypes, attributesToIgnore )
+{
+  let foundSelector;
+  const elementSelectors = getAllSelectors( element, selectorTypes, attributesToIgnore );
+  const allSelectors = [];
+
+  for( let selectorType of selectorTypes )
+  {
+    const { ID, Tag, Class : Classes, Attributes, NthChild } = elementSelectors;
+    switch ( selectorType )
+    {
+      case 'ID' :
+        if ( Boolean( ID ) && testUniqueness( element, ID ) )
+        {
+          allSelectors.push( ID );
+        }
+        break;
+
+      case 'Tag':
+        if ( Boolean( Tag ) && testUniqueness( element, Tag ) )
+        {
+          allSelectors.push( Tag );
+        }
+        break;
+
+      case 'Class':
+        if ( Boolean( Classes ) && Classes.length )
+        {
+          foundSelector = getUniqueCombination( element, Classes, Tag );
+          if (foundSelector) {
+            allSelectors.push( foundSelector );
+          }
+        }
+        break;
+
+      case 'Attributes':
+        if ( Boolean( Attributes ) && Attributes.length )
+        {
+          foundSelector = getUniqueCombination( element, Attributes, Tag );
+          if ( foundSelector )
+          {
+            allSelectors.push( foundSelector );
+          }
+        }
+        break;
+
+      case 'NthChild':
+        if ( Boolean( NthChild ) )
+        {
+          allSelectors.push( NthChild );
+        }
+    }
+  }
+  return allSelectors;
+}
+
 /**
  * Generate unique CSS selector for given DOM element
  *
@@ -160,7 +216,7 @@ function getUniqueSelector( element, selectorTypes, attributesToIgnore )
  * @api private
  */
 
-export default function unique( el, options={} )
+function unique( el, options={} )
 {
   const { selectorTypes=[ 'ID', 'Class', 'Tag', 'NthChild' ], attributesToIgnore= ['id', 'class', 'length'] } = options;
   const allSelectors = [];
@@ -188,3 +244,44 @@ export default function unique( el, options={} )
 
   return null;
 }
+
+function getAllUnique( el, options={} )
+{
+  const { selectorTypes=['ID', 'Class', 'Tag', 'NthChild'], attributesToIgnore= ['id', 'class', 'length'] } = options;
+  const allSelectors = [];
+  const parents = getParents( el );
+  const firstEl = parents.shift();
+
+  for( let elem of parents )
+  {
+    const selector = getUniqueSelector( elem, selectorTypes, attributesToIgnore );
+    if( Boolean( selector ) )
+    {
+      allSelectors.push( selector );
+    }
+  }
+
+  const firstSelectors = getAllUniqueSelector( firstEl, selectorTypes, attributesToIgnore );
+  const uniqueSelectors = [];
+
+  firstSelectors.forEach( firstElSelector =>
+  {
+    const selectors = [];
+    allSelectors.unshift( firstElSelector );
+    for( let it of allSelectors )
+    {
+      selectors.unshift( it );
+      const selector = selectors.join( ' > ' );
+      if( isUnique( el, selector ) )
+      {
+        allSelectors.shift();
+        uniqueSelectors.push( selector );
+        break;
+      }
+    }
+  } );
+
+  return uniqueSelectors;
+}
+
+export { unique as default, getAllUnique };
