@@ -27,7 +27,8 @@
         "space-before-function-paren": 2,
         "space-in-parens": [2, "always"],
         "key-spacing": [2, { "align": "colon", "beforeColon": true, "afterColon": true }],
-        "brace-style": [2, "allman", { "allowSingleLine": true }]
+        "brace-style": [2, "allman", { "allowSingleLine": true }],
+        "prefer-const": 0
     },
     "env": {
         "es6": true,
